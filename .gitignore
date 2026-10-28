@@ -1,0 +1,15 @@
+# Environment and secrets
+.env
+.env.*
+
+# Keep the safe template tracked
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# macOS
+.DS_Store

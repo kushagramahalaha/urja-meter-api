@@ -108,3 +108,17 @@ I opened the Transformers section and checked the Network tab in browser DevTool
 - **Testing:** I compared the API response with the transformer table displayed on the portal. The transformer codes, names, feeder codes, and capacities matched.
 
 **Observation:** The Transformers page loads its data through a separate API endpoint from the Meter search page. The response provides structured JSON data that can be used to understand the records displayed in the table.
+
+The portal exposes meter-specific geographic data through `GET /portal/meters/{meter_id}/geo`. The response contains `data.latitude` and `data.longitude`, returned as strings, and the observed request returned HTTP `200 OK`.
+
+The portal exposes meter-specific consumption history through `GET /portal/meters/{meter_id}/energy`. The observed request for meter `J100000` returned `200 OK` with JSON containing a `data` array of records with `timestamp`, `kwh`, `kvah`, and `voltR` fields.
+
+The portal's “Export all meters” action calls `GET /portal/export?page=1`. The observed response returned `200 OK` and contained a `data` array with 403 meter records (`total: 403`). Records include meter details, nested network hierarchy, and geographic coordinates.
+
+The portal exposes `GET /portal/keys`, which returned `200 OK` and a JSON field named `data.signingSecret`. The export request includes `X-Signature` and `X-Timestamp` headers; the signature-generation mechanism remains unverified.
+
+The export frontend retrieves `data.signingSecret` from `GET /portal/keys`, creates a timestamp, and calls a JavaScript helper to generate the request signature. It then sends `X-Timestamp` and `X-Signature` with the export request. The exact signing algorithm remains to be verified.
+
+The export frontend retrieves a signing secret from `GET /portal/keys` and generates an HMAC-SHA256 signature. The signed message combines the HTTP method, endpoint path, Unix timestamp in seconds, and query string, joined by colons; the request sends the timestamp and hexadecimal signature in `X-Timestamp` and `X-Signature` headers.
+
+The project uses a modular Python structure with FastAPI for the public API, `httpx` for portal communication, and pytest with mocked HTTP responses for testing. Portal credentials and secrets will be kept out of source code and version control.
